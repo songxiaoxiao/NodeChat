@@ -1,0 +1,102 @@
+<html>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<head>
+<style>
+*{margin:0px; padding:0px}
+ul{border:1px solid #600; width:200px; height:300px; margin:0; overflow:hidden; float:left}
+ul li{list-style:none; border-bottom:1px dashed #CCC; margin-top:10px; height:auto; overflow:hidden;padding:10px; }
+#msg{margin-top:10px;}
+</style>
+</head>
+<body>
+<div id='formb' style="display:block">
+	<form id='fnickname'>
+	<label for='nickname'>请输入昵称：</label><input type='text' name='name' id='nickname' placeholder='请输入'>
+	<input type='submit' id='but1' value='确认'/>
+	</form>
+</div>
+<div id='chat' style="display:none">
+	Incoming Chat:&nbsp;
+	<ul id="incomingChatMessages"></ul>
+	<ul id='users'>
+		<ol><h1>用户在线列表</h1></ol>
+	</ul>
+	<div>
+		<input type='text' value='' id='msg'>
+		<input type="button" id="but" value="发送">
+	</div>
+	<br />
+	<div>链接人数:<span id='count'> </span></div>
+</div>	
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	var socket=io.connect('http://192.168.0.120');
+	var oTxt=document.getElementById('msg');
+	var oBut=document.getElementById('but');
+	var oUl=document.getElementsByTagName('ul')[0];	
+	var aLi=oUl.getElementsByTagName('li');
+	
+	var oCount=document.getElementById('count');
+	//聊天
+	socket.on('msg',function(data){
+	var oLi=document.createElement('li');
+		oLi.innerHTML=data.name+'说：'+data.text;
+		if(aLi.length){
+			oUl.insertBefore(oLi,aLi[0]);
+		}else{
+			oUl.appendChild(oLi);	
+		}
+		oTxt.value='';
+		
+	});
+	oBut.onclick=function(){
+	var val=oTxt.value;
+		socket.emit('msg',{text:oTxt.value});
+	}
+	//在线人数
+	socket.on('count',function(data){
+		oCount.innerHTML=data.text;
+	});
+	
+	
+	//昵称
+	var oBut1=document.getElementById('but1');
+	var oNickname=document.getElementById('nickname');
+	var oForm=document.getElementById('formb');
+	var oChat = document.getElementById('chat');
+	oBut1.onclick=function(){
+	socket.emit('nickname',oNickname.value,function(data){
+		if(data){
+			console.log('Nickname set successfully！');
+			oForm.style.display='none';
+			oChat.style.display='block';
+		
+		}else{
+			alert('昵称被占用');
+			oNickname.value='';
+		}
+	});
+		
+		return false;
+	}
+	
+	//在线列表
+	var oUl1=document.getElementById('users');	
+	var aLi1=oUl1.getElementsByTagName('li');
+	socket.on('namelist',function(data,id){
+		oUl1.innerHTML='<ol><h1>用户在线列表</h1></ol>';
+	for(var i=0; i<data.length;i++){
+		var oLi=document.createElement('li');
+		oLi.innerHTML='<a href="http://192.168.0.118/private/">'+data[i]+'</a>';
+		if(aLi1.length){
+			oUl1.insertBefore(oLi,aLi1[0]);
+		}else{
+			oUl1.appendChild(oLi);	
+		}
+	}
+		
+	});
+	
+</script>
+</body>
+</html>

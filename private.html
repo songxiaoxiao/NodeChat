@@ -1,0 +1,59 @@
+<html>
+<meta http-equiv="content-type" content="text/html;charset=utf-8">
+<head>
+<style>
+*{margin:0px; padding:0px}
+ul{border:1px solid #600; width:200px; height:300px; margin:0; overflow:hidden; float:left}
+ul li{list-style:none; border-bottom:1px dashed #CCC; margin-top:10px; height:auto; overflow:hidden;padding:10px; }
+#msg{margin-top:10px;}
+</style>
+</head>
+<body>
+
+<div id='chat' style="display:block">
+	Incoming Chat:&nbsp;to<span></span>
+	<ul id="incomingChatMessages"></ul>
+
+	<div>
+		 姓名:<input id="user_name" type="text"><br>
+    发送给：<input type="text" id="to"><br>
+		<input type='text' value='' id='msg'>
+		<input type="button" id="but" value="发送">
+	</div>
+	<br />
+	
+</div>	
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	var socket=io.connect('http://192.168.0.120');
+	var oTxt=document.getElementById('msg');
+	var oBut=document.getElementById('but');
+	var oUl=document.getElementsByTagName('ul')[0];	
+	var aLi=oUl.getElementsByTagName('li');
+	
+	var oName=document.getElementById('user_name');
+	var oTo=document.getElementById('to');
+	
+	var oCount=document.getElementById('count');
+	//聊天
+	socket.on('privatemsg',function(data){
+	var oLi=document.createElement('li');
+		oLi.innerHTML=data.name+'说：'+data.text;
+		if(aLi.length){
+			oUl.insertBefore(oLi,aLi[0]);
+		}else{
+			oUl.appendChild(oLi);	
+		}
+		oTxt.value='';
+		
+	});
+	oBut.onclick=function(){
+		socket.emit('privatemsg',{text:oTxt.value,to:oTo.value});
+	}
+	
+	
+	
+	
+</script>
+</body>
+</html>
